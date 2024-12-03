@@ -9,6 +9,10 @@
      * thirdBoardNum: 当日三板
      * thirdBoomNum: 当日三板炸板数
      * upFourBoardNum: 高度板
+	 * mainBoardNum: 主板涨停数
+	 * chuangyeBoardNum: 创业板涨停数
+	 * kechuangBoardNum: 科创板涨停数
+	 * beijingBoardNum: 京市涨停数
      * upFourBoardRate: 高度板连扳率
      * boomRate: 炸板率
      * yesterdayUpTodayRise: 昨日涨停今表现
@@ -32,7 +36,11 @@
         boomRate: '13.47',
         yesterdayUpTodayRise: '5.68',
         yesterdayLineTodayRise: '5.07',
-        yesterdayBoomTodayRise: '1.54'
+        yesterdayBoomTodayRise: '1.54',
+		mainBoardNum: 142,
+	    chuangyeBoardNum: 11,
+	    kechuangBoardNum: 1,
+	    beijingBoardNum: 3
       },
       '20241126': {
         upLimitsNum: 92,
@@ -48,7 +56,11 @@
         boomRate: '38.60',
         yesterdayUpTodayRise: '-1.15',
         yesterdayLineTodayRise: '-3.57',
-        yesterdayBoomTodayRise: '-5.30'
+        yesterdayBoomTodayRise: '-5.30',
+		mainBoardNum: 85,
+	    chuangyeBoardNum: 6,
+	    kechuangBoardNum: 0,
+	    beijingBoardNum: 1
       },
       '20241127': {
         upLimitsNum: 103,
@@ -64,7 +76,11 @@
         boomRate: '18.25',
         yesterdayUpTodayRise: '1.67',
         yesterdayLineTodayRise: '1.45',
-        yesterdayBoomTodayRise: '0.88'
+        yesterdayBoomTodayRise: '0.88',
+		mainBoardNum: 83,
+	    chuangyeBoardNum: 13,
+	    kechuangBoardNum: 2,
+	    beijingBoardNum: 5
       },
       '20241128': {
         upLimitsNum: 95,
@@ -80,7 +96,11 @@
         boomRate: '37.36',
         yesterdayUpTodayRise: '3.64',
         yesterdayLineTodayRise: '6.62',
-        yesterdayBoomTodayRise: '0.32'
+        yesterdayBoomTodayRise: '0.32',
+		mainBoardNum: 83,
+	    chuangyeBoardNum: 6,
+	    kechuangBoardNum: 2,
+	    beijingBoardNum: 4
       },
       '20241129': {
         upLimitsNum: 134,
@@ -96,7 +116,11 @@
         boomRate: '17.86',
         yesterdayUpTodayRise: '3.10',
         yesterdayLineTodayRise: '5.19',
-        yesterdayBoomTodayRise: '-1.42'
+        yesterdayBoomTodayRise: '-1.42',
+		mainBoardNum: 112,
+	    chuangyeBoardNum: 15,
+	    kechuangBoardNum: 1,
+	    beijingBoardNum: 6
       },
       '20241202': {
         upLimitsNum: 169,
@@ -112,7 +136,11 @@
         boomRate: '24.27',
         yesterdayUpTodayRise: '5.48',
         yesterdayLineTodayRise: '7.17',
-        yesterdayBoomTodayRise: '0.00'
+        yesterdayBoomTodayRise: '0.00',
+		mainBoardNum: 144,
+	    chuangyeBoardNum: 17,
+	    kechuangBoardNum: 4,
+	    beijingBoardNum: 4
       },
       '20241203': {
         upLimitsNum: 119,
@@ -128,6 +156,10 @@
         boomRate: '29.95',
         yesterdayUpTodayRise: '2.26',
         yesterdayLineTodayRise: '2.57',
-        yesterdayBoomTodayRise: '-2.16'
+        yesterdayBoomTodayRise: '-2.16',
+		mainBoardNum: 105,
+	    chuangyeBoardNum: 9,
+	    kechuangBoardNum: 2,
+	    beijingBoardNum: 3
       }
     }
