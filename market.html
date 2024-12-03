@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Short Market</title>
+  <script src="./data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #chart1 {
+      height: 30vh;
+      margin-bottom: 3vh;
+      margin-top: 1vh;
+    }
+
+    #chart2 {
+      height: 30vh;
+      margin-bottom: 3vh;
+    }
+
+    #chart3 {
+      height: 30vh;
+      margin-bottom: 3vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chart1"></div>
+  <div id="chart2"></div>
+  <div id="chart3"></div>
+  <script>
+    var dataMap = {};
+    var upLimitsScript = null;
+    var today = new Date();
+    function isHoliday(day) {
+      return day.getDay() == 0 || day.getDay() == 6;
+    }
+    function jsonp(src, className) {
+      const script = document.createElement("script");
+      script.src = src;
+      script.className = className;
+      document.body.appendChild(script);
+    }
+    function upLimitsCallback(data) {
+      const { qdate, pool } = data.data
+      console.log(data);
+    }
+
+    function getUpLimits(date) {
+      const upSrc = `https://push2ex.eastmoney.com/getTopicZTPool?cb=upLimitsCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=1000&sort=fbt%3Aasc&date=${date}&_=1732869992081`;
+      jsonp(upSrc, 'up-limit');
+    }
+    function getPreWeekdays(days) {
+      var weekdays = [dayjs(today).format("YYYYMMDD")];
+      var currentDay = new Date();
+      while (weekdays.length < days) {
+        currentDay.setDate(currentDay.getDate() - 1);
+        if (!isHoliday(currentDay)) {
+          weekdays.unshift(dayjs(currentDay).format("YYYYMMDD"));
+        }
+      }
+      return weekdays;
+    }
+    var weekdays = getPreWeekdays(30);
+    var fetchArr = []
+    // weekdays.forEach(day => {
+    //   fetchArr.push(getUpLimits(day))
+    // })
+    //   Promise.all(fetchArr).then((res) => {
+    //  console.log("res:", res);
+    // });
+    console.log(weekdays);
+  </script>
+  <script>
+    // 上证指数，涨跌停数
+    var klines = [];
+    var klines30 = []
+    var xAxis30 = []
+    function aCallback(data) { // 上证指数K线
+      console.log(data)
+      klines = data.data.klines;
+      klines30 = klines.slice(-30);
+      initChart1()
+      initChart2()
+      initChart3()
+    }
+
+    var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
+    jsonp(aUrl)
+
+    function initChart1() {
+      var yAxis30 = []
+      var upLimits = []
+      var dropLimits = []
+      klines30.forEach(str => {
+        const arr = str.split(",");
+        const day = arr[0].replace(/-/g, '');
+        xAxis30.push(day)
+        yAxis30.push(arr[2])
+        upLimits.push(allData[day] && allData[day].upLimitsNum)
+        dropLimits.push(allData[day] && allData[day].dropLimitsNum)
+      })
+      var chartDom1 = document.getElementById("chart1");
+      var myChart1 = echarts.init(chartDom1);
+      var option1 = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+            crossStyle: {
+              color: "#999",
+            },
+          },
+        },
+        toolbox: {
+          feature: {
+            dataView: { show: true, readOnly: false },
+            magicType: { show: true, type: ["line", "bar"] },
+            restore: { show: true },
+            saveAsImage: { show: true },
+          },
+        },
+        legend: {
+          data: ["涨停数", "跌停数", "上证指数"],
+        },
+        xAxis: [
+          {
+            type: "category",
+            axisLabel: {
+              interval: 0,
+              rotate: 40
+            },
+            data: xAxis30,
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "涨/跌停数",
+            min: 0,
+            max: 200,
+            interval: 50,
+            axisLabel: {
+              formatter: "{value} 个",
+            },
+          },
+          {
+            type: "value",
+            name: "上证指数",
+            min: 3000,
+            max: 3500,
+            interval: 500,
+            axisLabel: {
+              formatter: "{value}",
+            },
+          },
+        ],
+        series: [
+          {
+            name: "涨停数",
+            type: "bar",
+            color: '#ef3135',
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: upLimits,
+          },
+          {
+            name: "跌停数",
+            type: "bar",
+            color: '#00a344',
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: dropLimits,
+          },
+          {
+            name: "上证指数",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + "";
+              },
+            },
+            data: yAxis30,
+          },
+        ],
+      };
+
+      option1 && myChart1.setOption(option1);
+    }
+
+  </script>
+  <script>
+    // 封板数/封板率
+    function initChart2() {
+      var firstBoardNumArr = []; // 一板数
+      var secondBoardNumArr = []; // 二板数
+      var thirdBoardNumArr = []; // 三板数
+      var upFourBoardNumArr = []; // 高度板数
+      var firstRateArr = []; // 一板封板率
+      var firstToSecondRateArr = []; // 一进二成功率
+      var secondToThirdRateArr = []; // 二进三成功率
+      var upFourRateArr = []; // 高度板连板率
+      xAxis30.forEach((day, index) => {
+        const dayData = allData[day];
+        const yesterdayData = allData[xAxis30[index - 1]];
+        let firstRate = undefined;
+        let firstToSecondRate = undefined;
+        let secondToThirdRate = undefined;
+        let upFourRate = undefined;
+        if (dayData) {
+          const { firstBoardNum, firstBoomNum, secondBoardNum, thirdBoardNum, upFourBoardNum, upFourBoardRate } = dayData;
+          firstBoardNumArr.push(firstBoardNum);
+          secondBoardNumArr.push(secondBoardNum);
+          thirdBoardNumArr.push(thirdBoardNum);
+          upFourBoardNumArr.push(upFourBoardNum);
+          firstRate = (firstBoardNum / (firstBoardNum + firstBoomNum) * 100).toFixed(2);
+          upFourRate = upFourBoardRate
+          if (yesterdayData) {
+            firstToSecondRate = (secondBoardNum / yesterdayData.firstBoardNum * 100).toFixed(2)
+            secondToThirdRate = (thirdBoardNum / yesterdayData.secondBoardNum * 100).toFixed(2)
+          }
+        } else {
+          firstBoardNumArr.push(undefined);
+          secondBoardNumArr.push(undefined);
+          thirdBoardNumArr.push(undefined);
+          upFourBoardNumArr.push(undefined);
+        }
+        firstRateArr.push(firstRate)
+        firstToSecondRateArr.push(firstToSecondRate)
+        secondToThirdRateArr.push(secondToThirdRate)
+        upFourRateArr.push(upFourRate)
+      })
+      var chartDom2 = document.getElementById("chart2");
+      var myChart2 = echarts.init(chartDom2);
+      var option2 = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+            crossStyle: {
+              color: "#999",
+            },
+          },
+        },
+        toolbox: {
+          feature: {
+            dataView: { show: true, readOnly: false },
+            magicType: { show: true, type: ["line", "bar"] },
+            restore: { show: true },
+            saveAsImage: { show: true },
+          },
+        },
+        legend: {
+          data: ["首板数", "二板数", "三板数", "高度板数", "首板成功率", "一进二成功率", "二进三成功率", "高度板连扳率"],
+        },
+        xAxis: [
+          {
+            type: "category",
+            axisLabel: {
+              interval: 0,
+              rotate: 40
+            },
+            data: xAxis30,
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "封板数",
+            min: 0,
+            max: 150,
+            interval: 50,
+            axisLabel: {
+              formatter: "{value} 个",
+            },
+          },
+          {
+            type: "value",
+            name: "封板率",
+            min: 0,
+            max: 100,
+            interval: 20,
+            axisLabel: {
+              formatter: "{value}",
+            },
+          },
+        ],
+        series: [
+          {
+            name: "首板数",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: firstBoardNumArr,
+          },
+          {
+            name: "二板数",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: secondBoardNumArr,
+          },
+          {
+            name: "三板数",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: thirdBoardNumArr,
+          },
+          {
+            name: "高度板数",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: upFourBoardNumArr,
+          },
+          {
+            name: "首板成功率",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + "%";
+              },
+            },
+            data: firstRateArr,
+          },
+          {
+            name: "一进二成功率",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + "%";
+              },
+            },
+            data: firstToSecondRateArr,
+          },
+          {
+            name: "二进三成功率",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + "%";
+              },
+            },
+            data: secondToThirdRateArr,
+          },
+          {
+            name: "高度板连扳率",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + "%";
+              },
+            },
+            data: upFourRateArr,
+          },
+        ],
+      };
+
+      option2 && myChart2.setOption(option2);
+    }
+
+  </script>
+  <script>
+    // 赚钱效应
+    function initChart3() {
+      var boomRateArr = []; // 炸板率
+      var yesterdayUpTodayRiseArr = []; // 昨日涨停今表现
+      var yesterdayLineTodayRiseArr = []; // 昨日连扳今表现
+      var yesterdayBoomTodayRiseArr = []; // 昨日炸板今表现
+      xAxis30.forEach((day, index) => {
+        const dayData = allData[day];
+        if (dayData) {
+          const { boomRate, yesterdayUpTodayRise, yesterdayLineTodayRise, yesterdayBoomTodayRise } = dayData;
+          boomRateArr.push(boomRate);
+          yesterdayUpTodayRiseArr.push(yesterdayUpTodayRise);
+          yesterdayLineTodayRiseArr.push(yesterdayLineTodayRise);
+          yesterdayBoomTodayRiseArr.push(yesterdayBoomTodayRise);
+        } else {
+          boomRateArr.push(undefined);
+          yesterdayUpTodayRiseArr.push(undefined);
+          yesterdayLineTodayRiseArr.push(undefined);
+          yesterdayBoomTodayRiseArr.push(undefined);
+        }
+
+      })
+      var chartDom3 = document.getElementById("chart3");
+      var myChart3 = echarts.init(chartDom3);
+      var option3 = {
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+            crossStyle: {
+              color: "#999",
+            },
+          },
+        },
+        toolbox: {
+          feature: {
+            dataView: { show: true, readOnly: false },
+            magicType: { show: true, type: ["line", "bar"] },
+            restore: { show: true },
+            saveAsImage: { show: true },
+          },
+        },
+        legend: {
+          data: ["今日涨停炸板率", "昨日涨停今表现", "昨日连扳今表现", "昨日炸板今表现"],
+        },
+        xAxis: [
+          {
+            type: "category",
+            axisLabel: {
+              interval: 0,
+              rotate: 40
+            },
+            data: xAxis30,
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "炸板率",
+            min: 0,
+            max: 100,
+            interval: 20,
+            axisLabel: {
+              formatter: "{value} %",
+            },
+          },
+          {
+            type: "value",
+            name: "涨幅",
+            min: -5,
+            max: 10,
+            interval: 2,
+            axisLabel: {
+              formatter: "{value} %",
+            },
+          },
+        ],
+        series: [
+          {
+            name: "今日涨停炸板率",
+            type: "bar",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " %";
+              },
+            },
+            data: boomRateArr,
+          },
+          {
+            name: "昨日涨停今表现",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " %";
+              },
+            },
+            data: yesterdayUpTodayRiseArr,
+          },
+          {
+            name: "昨日连扳今表现",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " %";
+              },
+            },
+            data: yesterdayLineTodayRiseArr,
+          },
+          {
+            name: "昨日炸板今表现",
+            type: "line",
+            yAxisIndex: 1,
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " %";
+              },
+            },
+            data: yesterdayBoomTodayRiseArr,
+          },
+        ],
+      };
+
+      option3 && myChart3.setOption(option3);
+    }
+
+  </script>
+</body>
+
+</html>
