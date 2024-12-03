@@ -101,6 +101,10 @@
       var yAxis30 = []
       var upLimits = []
       var dropLimits = []
+      var mainBoardNumArr = []
+      var chuangyeBoardNumArr = []
+      var kechuangBoardNumArr = []
+      var beijingBoardNumArr = []
       klines30.forEach(str => {
         const arr = str.split(",");
         const day = arr[0].replace(/-/g, '');
@@ -108,6 +112,10 @@
         yAxis30.push(arr[2])
         upLimits.push(allData[day] && allData[day].upLimitsNum)
         dropLimits.push(allData[day] && allData[day].dropLimitsNum)
+        mainBoardNumArr.push(allData[day] && allData[day].mainBoardNum)
+        chuangyeBoardNumArr.push(allData[day] && allData[day].chuangyeBoardNum)
+        kechuangBoardNumArr.push(allData[day] && allData[day].kechuangBoardNum)
+        beijingBoardNumArr.push(allData[day] && allData[day].beijingBoardNum)
       })
       var chartDom1 = document.getElementById("chart1");
       var myChart1 = echarts.init(chartDom1);
@@ -130,7 +138,12 @@
           },
         },
         legend: {
-          data: ["涨停数", "跌停数", "上证指数"],
+          data: ["涨停数",
+            "主板涨停数",
+            "创业板涨停数",
+            "科创板涨停数",
+            "京市涨停数",
+            "跌停数", "上证指数"],
         },
         xAxis: [
           {
@@ -178,6 +191,50 @@
               },
             },
             data: upLimits,
+          },
+          {
+            name: "主板涨停数",
+            type: "bar",
+            color: "#58bded",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: mainBoardNumArr,
+          },
+          {
+            name: "创业板涨停数",
+            type: "bar",
+            color: "#ff6600",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: chuangyeBoardNumArr,
+          },
+          {
+            name: "科创板涨停数",
+            type: "bar",
+            color: "#cd01ff",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: kechuangBoardNumArr,
+          },
+          {
+            name: "京市涨停数",
+            type: "bar",
+            color: "#e5a980",
+            tooltip: {
+              valueFormatter: function (value) {
+                return value + " 个";
+              },
+            },
+            data: beijingBoardNumArr,
           },
           {
             name: "跌停数",
@@ -403,19 +460,31 @@
     // 赚钱效应
     function initChart3() {
       var boomRateArr = []; // 炸板率
+      // var mainBoardNumArr = []; // 主板涨停数
+      // var chuangyeBoardNumArr = []; // 创业板涨停数
+      // var kechuangBoardNumArr = []; // 科创板涨停数
+      // var beijingBoardNumArr = []; // 京市涨停数
       var yesterdayUpTodayRiseArr = []; // 昨日涨停今表现
       var yesterdayLineTodayRiseArr = []; // 昨日连扳今表现
       var yesterdayBoomTodayRiseArr = []; // 昨日炸板今表现
       xAxis30.forEach((day, index) => {
         const dayData = allData[day];
         if (dayData) {
-          const { boomRate, yesterdayUpTodayRise, yesterdayLineTodayRise, yesterdayBoomTodayRise } = dayData;
+          const { boomRate, yesterdayUpTodayRise, yesterdayLineTodayRise, yesterdayBoomTodayRise, mainBoardNum, chuangyeBoardNum, kechuangBoardNum, beijingBoardNum } = dayData;
           boomRateArr.push(boomRate);
+          // mainBoardNumArr.push(mainBoardNum)
+          // chuangyeBoardNumArr.push(chuangyeBoardNum)
+          // kechuangBoardNumArr.push(kechuangBoardNum)
+          // beijingBoardNumArr.push(beijingBoardNum)
           yesterdayUpTodayRiseArr.push(yesterdayUpTodayRise);
           yesterdayLineTodayRiseArr.push(yesterdayLineTodayRise);
           yesterdayBoomTodayRiseArr.push(yesterdayBoomTodayRise);
         } else {
           boomRateArr.push(undefined);
+          // mainBoardNumArr.push(undefined)
+          // chuangyeBoardNumArr.push(undefined)
+          // kechuangBoardNumArr.push(undefined)
+          // beijingBoardNumArr.push(undefined)
           yesterdayUpTodayRiseArr.push(undefined);
           yesterdayLineTodayRiseArr.push(undefined);
           yesterdayBoomTodayRiseArr.push(undefined);
@@ -443,7 +512,15 @@
           },
         },
         legend: {
-          data: ["今日涨停炸板率", "昨日涨停今表现", "昨日连扳今表现", "昨日炸板今表现"],
+          data: [
+            "今日涨停炸板率", 
+            // "主板涨停数",
+            // "创业板涨停数",
+            // "科创板涨停数",
+            // "京市涨停数",
+            "昨日涨停今表现",
+            "昨日连扳今表现",
+            "昨日炸板今表现"],
         },
         xAxis: [
           {
@@ -469,6 +546,16 @@
               formatter: "{value} %",
             },
           },
+          // {
+          //   type: "value",
+          //   name: "涨停数",
+          //   min: 0,
+          //   max: 150,
+          //   interval: 50,
+          //   axisLabel: {
+          //     formatter: "{value} 个",
+          //   },
+          // },
           {
             type: "value",
             name: "涨幅",
@@ -491,6 +578,46 @@
             },
             data: boomRateArr,
           },
+          // {
+          //   name: "主板涨停数",
+          //   type: "bar",
+          //   tooltip: {
+          //     valueFormatter: function (value) {
+          //       return value + " 个";
+          //     },
+          //   },
+          //   data: mainBoardNumArr,
+          // },
+          // {
+          //   name: "创业板涨停数",
+          //   type: "bar",
+          //   tooltip: {
+          //     valueFormatter: function (value) {
+          //       return value + " 个";
+          //     },
+          //   },
+          //   data: chuangyeBoardNumArr,
+          // },
+          // {
+          //   name: "科创板涨停数",
+          //   type: "bar",
+          //   tooltip: {
+          //     valueFormatter: function (value) {
+          //       return value + " 个";
+          //     },
+          //   },
+          //   data: kechuangBoardNumArr,
+          // },
+          // {
+          //   name: "京市涨停数",
+          //   type: "bar",
+          //   tooltip: {
+          //     valueFormatter: function (value) {
+          //       return value + " 个";
+          //     },
+          //   },
+          //   data: beijingBoardNumArr,
+          // },
           {
             name: "昨日涨停今表现",
             type: "line",
