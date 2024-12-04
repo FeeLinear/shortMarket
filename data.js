@@ -161,5 +161,25 @@
 	    chuangyeBoardNum: 9,
 	    kechuangBoardNum: 2,
 	    beijingBoardNum: 3
+      },
+      '20241204': {
+        upLimitsNum: 86,
+        firstBoardNum: 56,
+        secondBoardNum: 10,
+        thirdBoardNum: 5,
+        upFourBoardNum: 15,
+	beijingBoardNum: 1,
+	kechuangBoardNum: 1,
+	chuangyeBoardNum: 6,
+	mainBoardNum: 78,
+        firstBoomNum: 37,
+        secondBoomNum: 9,
+        thirdBoomNum: 2,
+        dropLimitsNum: 15,
+        upFourBoardRate: '60',
+        boomRate: '38.46',
+        yesterdayUpTodayRise: '-0.25',
+        yesterdayLineTodayRise: '1.46',
+        yesterdayBoomTodayRise: '-2.62'
       }
     }
