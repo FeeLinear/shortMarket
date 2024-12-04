@@ -18,17 +18,24 @@
     #chart1 {
       height: 30vh;
       margin-bottom: 3vh;
-      margin-top: 1vh;
+      margin-top: 6vh;
+      margin-bottom: 2vh;
     }
 
     #chart2 {
       height: 30vh;
-      margin-bottom: 3vh;
+      margin-bottom: 2vh;
     }
 
     #chart3 {
       height: 30vh;
-      margin-bottom: 3vh;
+    }
+
+    #page {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
     }
   </style>
 </head>
@@ -37,6 +44,13 @@
   <div id="chart1"></div>
   <div id="chart2"></div>
   <div id="chart3"></div>
+  <div id="page">
+    <span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;
+    <span class="label">涨幅前三：</span>&nbsp;
+    <span id="value0" class="value"></span>&nbsp;&nbsp;
+    <span id="value1" class="value"></span>&nbsp;&nbsp;
+    <span id="value2" class="value"></span>
+  </div>
   <script>
     var dataMap = {};
     var upLimitsScript = null;
@@ -89,11 +103,27 @@
       console.log(data)
       klines = data.data.klines;
       klines30 = klines.slice(-30);
+      initPageDom()
       initChart1()
       initChart2()
       initChart3()
     }
+    function initPageDom() {
+      const showDay = klines30[klines30.length - 1].split(",")[0];
 
+      document.getElementById("day").innerHTML = showDay;
+      const showData = allData[showDay.replace(/-/g, '')];
+      if (showData) {
+        const industryArr = showData.topThreeIndustry.split(',');
+        industryArr.forEach((item, index) => {
+          let htmlStr = `<span style='color: red;'>${item}%</span>`;
+          if (item.includes("-")) {
+            htmlStr = `<span style='color: green;'>${item}%</span>`;
+          }
+          document.getElementById(`value${index}`).innerHTML = htmlStr
+        })
+      }
+    }
     var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
     jsonp(aUrl)
 
@@ -521,7 +551,7 @@
         },
         legend: {
           data: [
-            "今日涨停炸板率", 
+            "今日涨停炸板率",
             // "主板涨停数",
             // "创业板涨停数",
             // "科创板涨停数",

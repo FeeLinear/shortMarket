@@ -21,6 +21,8 @@
       margin-top: 1vh;
       overflow: hidden;
       white-space: nowrap;
+      margin-top: 6vh;
+      margin-bottom: 2vh;
     }
     #chart1 > div {
       display: inline-block;
@@ -29,12 +31,17 @@
     }
     #chart2 {
       height: 30vh;
-      margin-bottom: 3vh;
+      margin-bottom: 2vh;
     }
 
     #chart3 {
       height: 30vh;
-      margin-bottom: 3vh;
+    }
+    #page {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
     }
   </style>
 </head>
@@ -46,6 +53,13 @@
   </div>
   <div id="chart2"></div>
   <div id="chart3"></div>
+  <div id="page">
+    <span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;
+    <span class="label">涨幅前三：</span>&nbsp;
+    <span id="value0" class="value"></span>&nbsp;&nbsp;
+    <span id="value1" class="value"></span>&nbsp;&nbsp;
+    <span id="value2" class="value"></span>
+  </div>
   <script>
     var dataMap = {};
     var upLimitsScript = null;
@@ -98,9 +112,26 @@
     function aCallback(data) { // 上证指数K线
       klines = data.data.klines;
       klines30 = klines.slice(-30);
+      initPageDom()
       initChart1()
       initChart2()
       initChart3()
+    }
+    function initPageDom() {
+      const showDay = klines30[klines30.length - 1].split(",")[0];
+
+      document.getElementById("day").innerHTML = showDay;
+      const showData = allData[showDay.replace(/-/g, '')];
+      if (showData) {
+        const industryArr = showData.topThreeIndustry.split(',');
+        industryArr.forEach((item, index) => {
+          let htmlStr = `<span style='color: red;'>${item}%</span>`;
+          if (item.includes("-")) {
+            htmlStr = `<span style='color: green;'>${item}%</span>`;
+          }
+          document.getElementById(`value${index}`).innerHTML = htmlStr
+        })
+      }
     }
     function cCallback(data) { // 创业板K线
       klines = data.data.klines;
