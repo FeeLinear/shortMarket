@@ -34,7 +34,8 @@
     #page {
       position: absolute;
       left: 50%;
-      top: 10px;
+      top: 0px;
+      font-size: 14px;
       transform: translateX(-50%);
     }
   </style>
@@ -45,16 +46,30 @@
   <div id="chart2"></div>
   <div id="chart3"></div>
   <div id="page">
-    <span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;
-    <span class="label">涨幅前三：</span>&nbsp;
-    <span id="value0" class="value"></span>&nbsp;&nbsp;
-    <span id="value1" class="value"></span>&nbsp;&nbsp;
-    <span id="value2" class="value"></span>
+    <div style="text-align: center;"><span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;</div>
+    <div style="white-space: nowrap; font-size: 12px;">
+      <span class="label">行业前三：</span>&nbsp;
+      <span id="value0" class="value"></span>&nbsp;&nbsp;
+      <span id="value1" class="value"></span>&nbsp;&nbsp;
+      <span id="value2" class="value"></span>
+    </div>
+    <div style="white-space: nowrap; font-size: 12px;">
+      <span class="label">概念前三：</span>&nbsp;
+      <span id="gainian0" class="value"></span>&nbsp;&nbsp;
+      <span id="gainian1" class="value"></span>&nbsp;&nbsp;
+      <span id="gainian2" class="value"></span>
+    </div>
   </div>
   <script>
     var dataMap = {};
     var upLimitsScript = null;
-    var today = new Date();
+    var showDay = '';
+    var today = '';
+    var yesterday = '';
+    var todayZTData = null;
+    var todayDTData = null;
+    var todayZBData = null;
+    var todayZRData = null;
     function isHoliday(day) {
       return day.getDay() == 0 || day.getDay() == 6;
     }
@@ -66,7 +81,6 @@
     }
     function upLimitsCallback(data) {
       const { qdate, pool } = data.data
-      console.log(data);
     }
 
     function getUpLimits(date) {
@@ -100,29 +114,192 @@
     var klines30 = []
     var xAxis30 = []
     function aCallback(data) { // 上证指数K线
-      console.log(data)
       klines = data.data.klines;
-      klines30 = klines.slice(-30);
+      klines30 = klines.slice(-10);
+      showDay = klines30[klines30.length - 1].split(",")[0];
+      today = showDay.replace(/-/g, '');
+      yesterday = klines30[klines30.length - 2].split(",")[0].replace(/-/g, '');
       initPageDom()
+      if (!allData[today]) {
+        queryTodayData()
+      }
+    }
+    function queryTodayData() {
+      const upUrl = `https://push2ex.eastmoney.com/getTopicZTPool?cb=upCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fbt%3Aasc&date=${today}&_=1733367394919`
+      const dtUrl = `https://push2ex.eastmoney.com/getTopicDTPool?cb=dtCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fund%3Aasc&date=${today}&_=1733368300366`
+      const zbUrl = `https://push2ex.eastmoney.com/getTopicZBPool?cb=zbCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fbt%3Aasc&date=${today}&_=1733368300356`
+      const zrUrl = `https://push2ex.eastmoney.com/getYesterdayZTPool?cb=zrCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=zs%3Adesc&date=${today}&_=1733379473965
+`
+      jsonp(upUrl)
+      jsonp(dtUrl)
+      jsonp(zbUrl)
+      jsonp(zrUrl)
+    }
+    function upCallback(data) {
+      todayZTData = data.data;
+      deelTodayData();
+    }
+    function dtCallback(data) {
+      todayDTData = data.data;
+      deelTodayData();
+    }
+    function zbCallback(data) {
+      todayZBData = data.data;
+      deelTodayData();
+    }
+    function zrCallback(data) {
+      todayZRData = data.data;
+      deelTodayData();
+    }
+    function deelTodayData() {
+      if (!todayDTData || !todayZTData || !todayZBData || !todayZRData) {
+        return;
+      }
+      let upLimitsNum = 0,
+        firstBoardNum = 0,
+        secondBoardNum = 0,
+        thirdBoardNum = 0,
+        upFourBoardNum = 0,
+        beijingBoardNum = 0,
+        kechuangBoardNum = 0,
+        chuangyeBoardNum = 0,
+        mainBoardNum = 0,
+        firstBoomNum = 0,
+        secondBoomNum = 0,
+        thirdBoomNum = 0,
+        dropLimitsNum = 0,
+        upFourBoardRate = '0',
+        boomRate = '0',
+        yesterdayUpTodayRise = '0',
+        yesterdayLineTodayRise = '0',
+        yesterdayBoomTodayRise = undefined,
+        topThreeIndustry = '',
+        totalBoomNum = 0;
+      todayZTData.pool.forEach(item => {
+        const { c, lbc, } = item;
+        if (c.substring(0, 1) === '8') {
+          beijingBoardNum++
+        } else {
+          upLimitsNum++
+          if (c.substring(0, 1) === '3') {
+            chuangyeBoardNum++
+          } else if (c.substring(0, 2) === '68') {
+            kechuangBoardNum++
+          } else {
+            mainBoardNum++
+          }
+          if (lbc === 1) {
+            firstBoardNum++
+          } else if (lbc === 2) {
+            secondBoardNum++
+          } else if (lbc === 3) {
+            thirdBoardNum++
+          } else {
+            upFourBoardNum++
+          }
+        }
+      })
+      todayDTData.pool.forEach(item => {
+        const { c, zttj } = item;
+        if (c.substring(0, 1) !== '8') {
+          dropLimitsNum++
+        }
+      })
+      todayZBData.pool.forEach(item => {
+        const { c, zttj } = item;
+        if (c.substring(0, 1) !== '8') {
+          const { days, ct } = zttj;
+          if (days === 0 && ct === 0) {
+            firstBoomNum++
+          } else if (days === 2 && ct === 1) {
+            secondBoomNum++
+          } else if (days === 3 && ct === 2) {
+            thirdBoomNum++
+          }
+          totalBoomNum++
+        }
+      })
+      let allYesterdayZdp = 0;
+      let allYesterdayNum = 0;
+      let allYesterdayGaoZdp = 0;
+      let allYesterdayGaoNum = 0;
+      todayZRData.pool.forEach(item => {
+        const { c, zdp, ylbc, zttj } = item;
+        if (c.substring(0, 1) !== '8') {
+          const { days, ct } = zttj;
+          allYesterdayZdp += zdp;
+          allYesterdayNum++;
+          if (ylbc >= 4) {
+            allYesterdayGaoZdp += zdp;
+            allYesterdayGaoNum++;
+          }
+        }
+      })
+      upFourBoardRate = (upFourBoardNum / (allData[yesterday].upFourBoardNum + allData[yesterday].thirdBoardNum) * 100).toFixed(2)
+      yesterdayUpTodayRise = (allYesterdayZdp / allYesterdayNum).toFixed(2)
+      yesterdayLineTodayRise = (allYesterdayGaoZdp / allYesterdayGaoNum).toFixed(2)
+      boomRate = (totalBoomNum / (upLimitsNum + totalBoomNum) * 100).toFixed(2)
+      const todayData = {
+        upLimitsNum,
+        firstBoardNum,
+        secondBoardNum,
+        thirdBoardNum,
+        upFourBoardNum,
+        beijingBoardNum,
+        kechuangBoardNum,
+        chuangyeBoardNum,
+        mainBoardNum,
+        firstBoomNum,
+        secondBoomNum,
+        thirdBoomNum,
+        dropLimitsNum,
+        upFourBoardRate,
+        boomRate,
+        yesterdayUpTodayRise,
+        yesterdayLineTodayRise,
+        yesterdayBoomTodayRise,
+        topThreeIndustry
+      }
+      console.log('todayData: ', todayData)
+      allData[today] = todayData;
       initChart1()
       initChart2()
       initChart3()
     }
     function initPageDom() {
-      const showDay = klines30[klines30.length - 1].split(",")[0];
 
       document.getElementById("day").innerHTML = showDay;
-      const showData = allData[showDay.replace(/-/g, '')];
-      if (showData) {
-        const industryArr = showData.topThreeIndustry.split(',');
-        industryArr.forEach((item, index) => {
-          let htmlStr = `<span style='color: red;'>${item}%</span>`;
-          if (item.includes("-")) {
-            htmlStr = `<span style='color: green;'>${item}%</span>`;
-          }
-          document.getElementById(`value${index}`).innerHTML = htmlStr
-        })
-      }
+      const hangyeUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=pageDomCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:2+f:!50&fields=f3,f14&_=1733382164442"
+      const gainianUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=gainianCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:3+f:!50&fields=f3,f14&_=1733382164614"
+
+      jsonp(hangyeUrl)
+      jsonp(gainianUrl)
+    }
+    function pageDomCallback(data) {
+      data.data.diff.forEach((item, index) => {
+        if (index >= 3) {
+          return;
+        }
+        const { f3, f14 } = item;
+        let htmlStr = `<span style='color: red;'>${f14}: ${f3}%</span>`;
+        if (f3 < 0) {
+          htmlStr = `<span style='color: green;'>${f14}: ${f3}%</span>`;
+        }
+        document.getElementById(`value${index}`).innerHTML = htmlStr
+      })
+    }
+    function gainianCallback(data) {
+      data.data.diff.forEach((item, index) => {
+        if (index >= 3) {
+          return;
+        }
+        const { f3, f14 } = item;
+        let htmlStr = `<span style='color: red;'>${f14}: ${f3}%</span>`;
+        if (f3 < 0) {
+          htmlStr = `<span style='color: green;'>${f14}: ${f3}%</span>`;
+        }
+        document.getElementById(`gainian${index}`).innerHTML = htmlStr
+      })
     }
     var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
     jsonp(aUrl)
@@ -159,20 +336,13 @@
             },
           },
         },
-        toolbox: {
-          feature: {
-            dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ["line", "bar"] },
-            restore: { show: true },
-            saveAsImage: { show: true },
-          },
-        },
         legend: {
-          data: ["涨停数",
-            "主板涨停数",
-            "创业板涨停数",
-            "科创板涨停数",
-            "京市涨停数",
+          data: [
+            "涨停数",
+            "主板",
+            "创业板",
+            "科创板",
+            "京市",
             "跌停数", "上证指数"],
         },
         xAxis: [
@@ -192,6 +362,9 @@
           {
             type: "value",
             name: "涨/跌停数",
+            nameTextStyle: {
+              padding: [0, 0, 0, -30]
+            },
             min: 0,
             max: 200,
             interval: 50,
@@ -202,6 +375,9 @@
           {
             type: "value",
             name: "上证指数",
+            nameTextStyle: {
+              padding: [0, -30, 0, 0]
+            },
             min: 3000,
             max: 3500,
             interval: 500,
@@ -223,7 +399,7 @@
             data: upLimits,
           },
           {
-            name: "主板涨停数",
+            name: "主板",
             type: "bar",
             color: "#58bded",
             tooltip: {
@@ -234,7 +410,7 @@
             data: mainBoardNumArr,
           },
           {
-            name: "创业板涨停数",
+            name: "创业板",
             type: "bar",
             color: "#ff6600",
             tooltip: {
@@ -245,7 +421,7 @@
             data: chuangyeBoardNumArr,
           },
           {
-            name: "科创板涨停数",
+            name: "科创板",
             type: "bar",
             color: "#cd01ff",
             tooltip: {
@@ -256,7 +432,7 @@
             data: kechuangBoardNumArr,
           },
           {
-            name: "京市涨停数",
+            name: "京市",
             type: "bar",
             color: "#e5a980",
             tooltip: {
@@ -348,16 +524,8 @@
             },
           },
         },
-        toolbox: {
-          feature: {
-            dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ["line", "bar"] },
-            restore: { show: true },
-            saveAsImage: { show: true },
-          },
-        },
         legend: {
-          data: ["首板数", "二板数", "三板数", "高度板数", "首板成功率", "一进二成功率", "二进三成功率", "高度板连扳率"],
+          data: ["首板数", "二板数", "三板数", "高度板数", "首板成功率", "一进二", "二进三", "高度板"],
         },
         xAxis: [
           {
@@ -376,6 +544,9 @@
           {
             type: "value",
             name: "封板数",
+            nameTextStyle: {
+              padding: [0, 0, 0, -40]
+            },
             min: 0,
             max: 150,
             interval: 50,
@@ -385,7 +556,10 @@
           },
           {
             type: "value",
-            name: "封板率",
+            name: "成功率",
+            nameTextStyle: {
+              padding: [0, -40, 0, 0]
+            },
             min: 0,
             max: 100,
             interval: 20,
@@ -452,7 +626,7 @@
             data: firstRateArr,
           },
           {
-            name: "一进二成功率",
+            name: "一进二",
             type: "line",
             color: "#91cc75",
             yAxisIndex: 1,
@@ -464,7 +638,7 @@
             data: firstToSecondRateArr,
           },
           {
-            name: "二进三成功率",
+            name: "二进三",
             type: "line",
             color: "#fac858",
             yAxisIndex: 1,
@@ -476,7 +650,7 @@
             data: secondToThirdRateArr,
           },
           {
-            name: "高度板连扳率",
+            name: "高度板",
             type: "line",
             color: "#ee6666",
             yAxisIndex: 1,
@@ -498,10 +672,10 @@
     // 赚钱效应
     function initChart3() {
       var boomRateArr = []; // 炸板率
-      // var mainBoardNumArr = []; // 主板涨停数
-      // var chuangyeBoardNumArr = []; // 创业板涨停数
-      // var kechuangBoardNumArr = []; // 科创板涨停数
-      // var beijingBoardNumArr = []; // 京市涨停数
+      // var mainBoardNumArr = []; // 主板
+      // var chuangyeBoardNumArr = []; // 创业板
+      // var kechuangBoardNumArr = []; // 科创板
+      // var beijingBoardNumArr = []; // 京市
       var yesterdayUpTodayRiseArr = []; // 昨日涨停今表现
       var yesterdayLineTodayRiseArr = []; // 昨日连扳今表现
       var yesterdayBoomTodayRiseArr = []; // 昨日炸板今表现
@@ -541,21 +715,13 @@
             },
           },
         },
-        toolbox: {
-          feature: {
-            dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ["line", "bar"] },
-            restore: { show: true },
-            saveAsImage: { show: true },
-          },
-        },
         legend: {
           data: [
             "今日涨停炸板率",
-            // "主板涨停数",
-            // "创业板涨停数",
-            // "科创板涨停数",
-            // "京市涨停数",
+            // "主板",
+            // "创业板",
+            // "科创板",
+            // "京市",
             "昨日涨停今表现",
             "昨日连扳今表现",
             "昨日炸板今表现"],
@@ -576,7 +742,9 @@
         yAxis: [
           {
             type: "value",
-            name: "炸板率",
+            name: "炸板率", nameTextStyle: {
+              padding: [0, 0, 0, -50]
+            },
             min: 0,
             max: 100,
             interval: 20,
@@ -597,6 +765,10 @@
           {
             type: "value",
             name: "涨幅",
+            name: "炸板率",
+            nameTextStyle: {
+              padding: [0, -40, 0, 0]
+            },
             min: -5,
             max: 10,
             interval: 2,
@@ -617,7 +789,7 @@
             data: boomRateArr,
           },
           // {
-          //   name: "主板涨停数",
+          //   name: "主板",
           //   type: "bar",
           //   tooltip: {
           //     valueFormatter: function (value) {
@@ -627,7 +799,7 @@
           //   data: mainBoardNumArr,
           // },
           // {
-          //   name: "创业板涨停数",
+          //   name: "创业板",
           //   type: "bar",
           //   tooltip: {
           //     valueFormatter: function (value) {
@@ -637,7 +809,7 @@
           //   data: chuangyeBoardNumArr,
           // },
           // {
-          //   name: "科创板涨停数",
+          //   name: "科创板",
           //   type: "bar",
           //   tooltip: {
           //     valueFormatter: function (value) {
@@ -647,7 +819,7 @@
           //   data: kechuangBoardNumArr,
           // },
           // {
-          //   name: "京市涨停数",
+          //   name: "京市",
           //   type: "bar",
           //   tooltip: {
           //     valueFormatter: function (value) {
