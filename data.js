@@ -669,7 +669,7 @@ var allData = {
     boomRate: "15.69",
     yesterdayUpTodayRise: "4.09",
     yesterdayLineTodayRise: "3.05",
-    yesterdayBoomTodayRise: undefined,
-    topThreeIndustry: "",
+    yesterdayBoomTodayRise: '-0.08',
+    topThreeIndustry: "房地产:1.50,证券:1.37,建筑装饰:1.33"
   },
 };
