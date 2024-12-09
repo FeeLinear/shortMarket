@@ -24,11 +24,13 @@
       margin-top: 6vh;
       margin-bottom: 2vh;
     }
-    #chart1 > div {
+
+    #chart1>div {
       display: inline-block;
       width: 50%;
       height: 100%;
     }
+
     #chart2 {
       height: 30vh;
       margin-bottom: 2vh;
@@ -37,10 +39,11 @@
     #chart3 {
       height: 30vh;
     }
+
     #page {
       position: absolute;
       left: 50%;
-      top: 10px;
+      top: 2px;
       transform: translateX(-50%);
     }
   </style>
@@ -54,11 +57,27 @@
   <div id="chart2"></div>
   <div id="chart3"></div>
   <div id="page">
-    <span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;
-    <span class="label">涨幅前三：</span>&nbsp;
-    <span id="value0" class="value"></span>&nbsp;&nbsp;
-    <span id="value1" class="value"></span>&nbsp;&nbsp;
-    <span id="value2" class="value"></span>
+    <div style="text-align: center;"><span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;</div>
+    <div style="white-space: nowrap;">
+      <div style="white-space: nowrap; font-size: 12px; display: inline-block; margin-right: 20px;">
+        <span class="label">概念前三：</span>&nbsp;
+        <span id="gainian0" class="value"></span>&nbsp;&nbsp;
+        <span id="gainian1" class="value"></span>&nbsp;&nbsp;
+        <span id="gainian2" class="value"></span>
+      </div>
+      <div style="white-space: nowrap; font-size: 12px; display: inline-block; margin-right: 20px;">
+        <span class="label">行业前三：</span>&nbsp;
+        <span id="value0" class="value"></span>&nbsp;&nbsp;
+        <span id="value1" class="value"></span>&nbsp;&nbsp;
+        <span id="value2" class="value"></span>
+      </div>
+      <div style="white-space: nowrap; font-size: 12px; display: inline-block;">
+        <span class="label">权重前三：</span>&nbsp;
+        <span id="quanzhong0" class="value"></span>&nbsp;&nbsp;
+        <span id="quanzhong1" class="value"></span>&nbsp;&nbsp;
+        <span id="quanzhong2" class="value"></span>
+      </div>
+    </div>
   </div>
   <script>
     var dataMap = {};
@@ -119,7 +138,6 @@
     }
     function initPageDom() {
       const showDay = klines30[klines30.length - 1].split(",")[0];
-
       document.getElementById("day").innerHTML = showDay;
       const showData = allData[showDay.replace(/-/g, '')];
       if (showData) {
@@ -129,9 +147,40 @@
           if (item.includes("-")) {
             htmlStr = `<span style='color: green;'>${item}%</span>`;
           }
-          document.getElementById(`value${index}`).innerHTML = htmlStr
+          document.getElementById(`quanzhong${index}`).innerHTML = htmlStr
         })
       }
+      const hangyeUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=pageDomCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:2+f:!50&fields=f3,f14&_=1733382164442"
+      const gainianUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=gainianCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:3+f:!50&fields=f3,f14&_=1733382164614"
+
+      jsonp(hangyeUrl)
+      jsonp(gainianUrl)
+    }
+    function pageDomCallback(data) {
+      data.data.diff.forEach((item, index) => {
+        if (index >= 3) {
+          return;
+        }
+        const { f3, f14 } = item;
+        let htmlStr = `<span style='color: red;'>${f14}: ${f3}%</span>`;
+        if (f3 < 0) {
+          htmlStr = `<span style='color: green;'>${f14}: ${f3}%</span>`;
+        }
+        document.getElementById(`value${index}`).innerHTML = htmlStr
+      })
+    }
+    function gainianCallback(data) {
+      data.data.diff.forEach((item, index) => {
+        if (index >= 3) {
+          return;
+        }
+        const { f3, f14 } = item;
+        let htmlStr = `<span style='color: red;'>${f14}: ${f3}%</span>`;
+        if (f3 < 0) {
+          htmlStr = `<span style='color: green;'>${f14}: ${f3}%</span>`;
+        }
+        document.getElementById(`gainian${index}`).innerHTML = htmlStr
+      })
     }
     function cCallback(data) { // 创业板K线
       klines = data.data.klines;
@@ -760,7 +809,7 @@
         },
         legend: {
           data: [
-            "今日涨停炸板率", 
+            "今日涨停炸板率",
             // "主板涨停数",
             // "创业板涨停数",
             // "科创板涨停数",
