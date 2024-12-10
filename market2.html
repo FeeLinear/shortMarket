@@ -14,7 +14,9 @@
       margin: 0;
       padding: 0;
     }
-
+    body {
+      font-size: 12px;
+    }
     #chart1 {
       height: 30vh;
       margin-bottom: 3vh;
@@ -57,7 +59,11 @@
   <div id="chart2"></div>
   <div id="chart3"></div>
   <div id="page">
-    <div style="text-align: center;"><span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;</div>
+    <div style="text-align: center;">
+      <span id="day" class="day" style="font-weight: bold; font-size: 14px;"></span>&nbsp;&nbsp;
+      <span id="shangzhang"></span>
+      <span id="xiadie"></span>
+    </div>
     <div style="white-space: nowrap;">
       <div style="white-space: nowrap; font-size: 12px; display: inline-block; margin-right: 20px;">
         <span class="label">概念前三：</span>&nbsp;
@@ -152,9 +158,11 @@
       }
       const hangyeUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=pageDomCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:2+f:!50&fields=f3,f14&_=1733382164442"
       const gainianUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=gainianCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:3+f:!50&fields=f3,f14&_=1733382164614"
+      const zhangdieshuUrl = "https://push2.eastmoney.com/api/qt/ulist.np/get?cb=zhangdieCallback&fid=f3&pi=0&pz=20&po=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&fields=f104,f105,f106&np=1&secids=1.000001%2C0.399001&_=1733801223281"
 
       jsonp(hangyeUrl)
       jsonp(gainianUrl)
+      jsonp(zhangdieshuUrl)
     }
     function pageDomCallback(data) {
       data.data.diff.forEach((item, index) => {
@@ -181,6 +189,19 @@
         }
         document.getElementById(`gainian${index}`).innerHTML = htmlStr
       })
+    }
+    function zhangdieCallback(data) {
+      let shangzhangshu = 0;
+      let xiadieshu = 0;
+      data.data.diff.forEach((item, index) => {
+        const { f104, f105, f106 } = item;
+        shangzhangshu += f104;
+        xiadieshu += f105;
+      })
+      const shangzhanghtml = `上涨：<span style='color: red;'>${shangzhangshu}</span>`;
+      const xiadieshuhtml = `下跌：<span style='color: green;'>${xiadieshu}</span>`;
+      document.getElementById(`shangzhang`).innerHTML = shangzhanghtml
+      document.getElementById(`xiadie`).innerHTML = xiadieshuhtml
     }
     function cCallback(data) { // 创业板K线
       klines = data.data.klines;
