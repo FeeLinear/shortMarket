@@ -10,9 +10,10 @@
   <!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
   <style>
-    body{
+    body {
       font-size: 12px;
     }
+
     * {
       margin: 0;
       padding: 0;
@@ -38,7 +39,7 @@
       position: absolute;
       left: 50%;
       top: 0px;
-      font-size: 14px;
+      font-size: 12px;
       transform: translateX(-50%);
     }
   </style>
@@ -49,14 +50,18 @@
   <div id="chart2"></div>
   <div id="chart3"></div>
   <div id="page">
-    <div style="text-align: center;"><span id="day" class="day" style="font-weight: bold;"></span>&nbsp;&nbsp;</div>
-    <div style="white-space: nowrap; font-size: 12px; line-height: 1.1;">
+    <div style="text-align: center;">
+      <span id="day" class="day" style="font-weight: bold; font-size: 14px;"></span>&nbsp;&nbsp;
+      <span id="shangzhang"></span>
+      <span id="xiadie"></span>
+    </div>
+    <div style="white-space: nowrap; font-size: 10px; line-height: 1.1;">
       <span class="label">行业前三：</span>&nbsp;
       <span id="value0" class="value"></span>&nbsp;&nbsp;
       <span id="value1" class="value"></span>&nbsp;&nbsp;
       <span id="value2" class="value"></span>
     </div>
-    <div style="white-space: nowrap; font-size: 12px; line-height: 1.1;">
+    <div style="white-space: nowrap; font-size: 10px; line-height: 1.1;">
       <span class="label">概念前三：</span>&nbsp;
       <span id="gainian0" class="value"></span>&nbsp;&nbsp;
       <span id="gainian1" class="value"></span>&nbsp;&nbsp;
@@ -278,9 +283,10 @@
       document.getElementById("day").innerHTML = showDay;
       const hangyeUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=pageDomCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:2+f:!50&fields=f3,f14&_=1733382164442"
       const gainianUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=gainianCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:3+f:!50&fields=f3,f14&_=1733382164614"
-
+      const zhangdieshuUrl = "https://push2.eastmoney.com/api/qt/ulist.np/get?cb=zhangdieCallback&fid=f3&pi=0&pz=20&po=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&fields=f104,f105,f106&np=1&secids=1.000001%2C0.399001&_=1733801223281"
       jsonp(hangyeUrl)
       jsonp(gainianUrl)
+      jsonp(zhangdieshuUrl)
     }
     function pageDomCallback(data) {
       data.data.diff.forEach((item, index) => {
@@ -307,6 +313,19 @@
         }
         document.getElementById(`gainian${index}`).innerHTML = htmlStr
       })
+    }
+    function zhangdieCallback(data) {
+      let shangzhangshu = 0;
+      let xiadieshu = 0;
+      data.data.diff.forEach((item, index) => {
+        const { f104, f105, f106 } = item;
+        shangzhangshu += f104;
+        xiadieshu += f105;
+      })
+      const shangzhanghtml = `上涨：<span style='color: red;'>${shangzhangshu}</span>`;
+      const xiadieshuhtml = `下跌：<span style='color: green;'>${xiadieshu}</span>`;
+      document.getElementById(`shangzhang`).innerHTML = shangzhanghtml
+      document.getElementById(`xiadie`).innerHTML = xiadieshuhtml
     }
     var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
     jsonp(aUrl)
