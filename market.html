@@ -5,53 +5,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Short Market</title>
+  <script src="./utils.js"></script>
   <script src="./data.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
-  <style>
-    body {
-      font-size: 12px;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-    }
-
-    #chart1 {
-      height: 30vh;
-      margin-bottom: 3vh;
-      margin-top: 6vh;
-      margin-bottom: 2vh;
-    }
-
-    #chart2 {
-      height: 30vh;
-      margin-bottom: 2vh;
-    }
-
-    #chart3 {
-      height: 30vh;
-    }
-
-    #page {
-      position: absolute;
-      left: 50%;
-      top: 0px;
-      font-size: 12px;
-      transform: translateX(-50%);
-    }
-  </style>
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
   <div id="chart1"></div>
   <div id="chart2"></div>
   <div id="chart3"></div>
+  <div id="wrapper"></div>
   <div id="page">
-    <div style="text-align: center;">
-      <span id="day" class="day" style="font-weight: bold; font-size: 14px;"></span>&nbsp;&nbsp;
+    <div style="text-align: center; vertical-align: middle;">
+      <span class="arrow" onclick="prev()">&lt;</span>&nbsp;
+      <span id="day" class="day" style="font-weight: bold; font-size: 14px;"></span>&nbsp;
+      <span class="arrow" onclick="next()">&gt;</span>&nbsp;
       <span id="shangzhang"></span>
       <span id="xiadie"></span>
     </div>
@@ -68,6 +40,7 @@
       <span id="gainian2" class="value"></span>
     </div>
   </div>
+  <script src="./content.js"></script>
   <script>
     var dataMap = {};
     var upLimitsScript = null;
@@ -78,15 +51,6 @@
     var todayDTData = null;
     var todayZBData = null;
     var todayZRData = null;
-    function isHoliday(day) {
-      return day.getDay() == 0 || day.getDay() == 6;
-    }
-    function jsonp(src, className) {
-      const script = document.createElement("script");
-      script.src = src;
-      script.className = className;
-      document.body.appendChild(script);
-    }
     function upLimitsCallback(data) {
       const { qdate, pool } = data.data
     }
@@ -121,23 +85,51 @@
     var klines = [];
     var klines30 = []
     var xAxis30 = []
+    var index = 0;
+    start();
+    function prev() {
+      console.log(index);
+      if (index >= 8) {
+        return;
+      }
+      index++;
+      render();
+    }
+    function next() {
+      if (index <= 0) {
+        return;
+      }
+      index--;
+      render();
+    }
+    function start() {
+      var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
+      jsonp(aUrl)
+    }
     function aCallback(data) { // 上证指数K线
       klines = data.data.klines;
-      klines30 = klines.slice(-10);
-      showDay = klines30[klines30.length - 1].split(",")[0];
+      render()
+    }
+    function render() {
+      klines30 = klines.slice(-10 - index);
+      if (index) {
+        klines30 = klines.slice(-10 - index, klines.length - index);
+      }
+      showDay = klines30[klines30.length - index - 1].split(",")[0];
       today = showDay.replace(/-/g, '');
-      yesterday = klines30[klines30.length - 2].split(",")[0].replace(/-/g, '');
+      yesterday = klines30[klines30.length - index - 2].split(",")[0].replace(/-/g, '');
       initPageDom()
       if (allData[today]) {
         initChart1()
         initChart2()
         initChart3()
+        initContent()
       } else {
         queryTodayData()
       }
     }
     function queryTodayData() {
-      const upUrl = `https://push2ex.eastmoney.com/getTopicZTPool?cb=upCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fbt%3Aasc&date=${today}&_=1733367394919`
+      const upUrl = `https://push2ex.eastmoney.com/getTopicZTPool?cb=upCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=zttj%3Aasc&date=${today}&_=1733367394919`
       const dtUrl = `https://push2ex.eastmoney.com/getTopicDTPool?cb=dtCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fund%3Aasc&date=${today}&_=1733368300366`
       const zbUrl = `https://push2ex.eastmoney.com/getTopicZBPool?cb=zbCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=fbt%3Aasc&date=${today}&_=1733368300356`
       const zrUrl = `https://push2ex.eastmoney.com/getYesterdayZTPool?cb=zrCallback&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wz.ztzt&Pageindex=0&pagesize=500&sort=zs%3Adesc&date=${today}&_=1733379473965
@@ -277,6 +269,7 @@
       initChart1()
       initChart2()
       initChart3()
+      initContent()
     }
     function initPageDom() {
 
@@ -327,10 +320,9 @@
       document.getElementById(`shangzhang`).innerHTML = shangzhanghtml
       document.getElementById(`xiadie`).innerHTML = xiadieshuhtml
     }
-    var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
-    jsonp(aUrl)
 
     function initChart1() {
+      xAxis30 = []
       var yAxis30 = []
       var upLimits = []
       var dropLimits = []
@@ -350,6 +342,7 @@
         kechuangBoardNumArr.push(allData[day] && allData[day].kechuangBoardNum)
         beijingBoardNumArr.push(allData[day] && allData[day].beijingBoardNum)
       })
+      console.log('xAxis1', xAxis30)
       var chartDom1 = document.getElementById("chart1");
       var myChart1 = echarts.init(chartDom1);
       var option1 = {
@@ -501,6 +494,7 @@
   <script>
     // 封板数/封板率
     function initChart2() {
+      console.log('xAxis2', xAxis30)
       var firstBoardNumArr = []; // 一板数
       var secondBoardNumArr = []; // 二板数
       var thirdBoardNumArr = []; // 三板数
@@ -699,6 +693,7 @@
   <script>
     // 赚钱效应
     function initChart3() {
+      console.log('xAxis2', xAxis30)
       var boomRateArr = []; // 炸板率
       // var mainBoardNumArr = []; // 主板
       // var chuangyeBoardNumArr = []; // 创业板

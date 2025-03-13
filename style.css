@@ -1,0 +1,37 @@
+body {
+  font-size: 12px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+#chart1 {
+  height: 30vh;
+  margin-bottom: 3vh;
+  margin-top: 6vh;
+  margin-bottom: 2vh;
+}
+
+#chart2 {
+  height: 30vh;
+  margin-bottom: 2vh;
+}
+
+#chart3 {
+  height: 30vh;
+}
+
+#page {
+  position: absolute;
+  left: 50%;
+  top: 0px;
+  font-size: 12px;
+  transform: translateX(-50%);
+}
+
+#wrapper {
+  min-height: 30vh;
+  background-color: azure;
+}
