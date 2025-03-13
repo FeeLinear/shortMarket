@@ -8,6 +8,7 @@
   <script src="./utils.js"></script>
   <script src="./data.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
@@ -18,7 +19,63 @@
   <div id="chart1"></div>
   <div id="chart2"></div>
   <div id="chart3"></div>
-  <div id="wrapper"></div>
+  <div id="wrapper">
+    <div :class="{'no-reason': noReason}">
+      <div class="header">
+        <div class="h-item" @click="noReason = !noReason">
+          <div>股票名称</div>
+          <div>股票代码</div>
+        </div>
+        <div class="h-item">
+          <div>流通市值</div>
+          <div>总市值</div>
+        </div>
+        <div class="h-item">
+          <div>封板时间</div>
+          <div>最后封板</div>
+        </div>
+        <div class="h-item">
+          <div>涨停统计</div>
+          <div>连扳数</div>
+        </div>
+        <div class="h-item">
+          <div>所属行业</div>
+          <div>连扳概率</div>
+        </div>
+      </div>
+      <ul>
+        <li class="m-item" v-for="(item, index) in dataList">
+          <div v-if="indexList.includes(index)" class="item-header">{{item.a}}</div>
+          <div class="item-top" @click="$set(item, 'showRemark', !item.showRemark)">
+            <div class="h-item">
+              <div>{{item.n}}</div>
+              <div>{{item.c}}</div>
+            </div>
+            <div class="h-item">
+              <div>{{item.ltsz | toFixed}}亿</div>
+              <div>{{item.tshare | toFixed}}亿</div>
+            </div>
+            <div class="h-item">
+              <div>{{item.fbt | time}}</div>
+              <div>{{item.lbt | time}}</div>
+            </div>
+            <div class="h-item">
+              <div>{{item.zttj.ct}}/{{item.zttj.days}}</div>
+              <div>{{item.lbc == 1? '首板': item.lbc + '连扳'}}</div>
+            </div>
+            <div class="h-item">
+              <div>{{item.hybk}}</div>
+              <div>{{item.lbgl}}</div>
+            </div>
+          </div>
+          <div class="item-bot"
+            :class="{'show-remark': item.showRemark === true, 'no-remark': item.showRemark === false}">
+            烦烦烦
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
   <div id="page">
     <div style="text-align: center; vertical-align: middle;">
       <span class="arrow" onclick="prev()">&lt;</span>&nbsp;
@@ -40,6 +97,7 @@
       <span id="gainian2" class="value"></span>
     </div>
   </div>
+
   <script src="./content.js"></script>
   <script>
     var dataMap = {};
@@ -78,7 +136,6 @@
     //   Promise.all(fetchArr).then((res) => {
     //  console.log("res:", res);
     // });
-    console.log(weekdays);
   </script>
   <script>
     // 上证指数，涨跌停数
@@ -342,7 +399,6 @@
         kechuangBoardNumArr.push(allData[day] && allData[day].kechuangBoardNum)
         beijingBoardNumArr.push(allData[day] && allData[day].beijingBoardNum)
       })
-      console.log('xAxis1', xAxis30)
       var chartDom1 = document.getElementById("chart1");
       var myChart1 = echarts.init(chartDom1);
       var option1 = {
@@ -494,7 +550,6 @@
   <script>
     // 封板数/封板率
     function initChart2() {
-      console.log('xAxis2', xAxis30)
       var firstBoardNumArr = []; // 一板数
       var secondBoardNumArr = []; // 二板数
       var thirdBoardNumArr = []; // 三板数
@@ -693,7 +748,6 @@
   <script>
     // 赚钱效应
     function initChart3() {
-      console.log('xAxis2', xAxis30)
       var boomRateArr = []; // 炸板率
       // var mainBoardNumArr = []; // 主板
       // var chuangyeBoardNumArr = []; // 创业板

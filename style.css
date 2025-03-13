@@ -35,3 +35,46 @@ body {
   min-height: 30vh;
   background-color: azure;
 }
+
+.header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: azure;
+  padding: 10px 0;
+}
+
+.m-item {
+  margin: 10px 0;
+}
+
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.h-item {
+  flex: 1;
+  text-align: center;
+}
+.item-bot{
+  padding: 5px 10px;
+  background-color: aliceblue;
+}
+.no-reason .item-bot{
+  display: none;
+}
+.show-remark{
+  display: block!important;
+}
+.no-remark{
+  display: none!important;
+}
+.item-header{
+  padding: 10px;
+  background-color: aquamarine;
+}
