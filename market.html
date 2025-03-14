@@ -22,30 +22,30 @@
   <div id="wrapper">
     <div :class="{'no-reason': noReason}">
       <div class="header">
-        <div class="h-item" @click="noReason = !noReason">
-          <div>股票名称</div>
-          <div>股票代码</div>
+        <div class="h-item">
+          <div @click="noReason = !noReason">股票名称</div>
+          <div @click="clearSort()">股票代码</div>
         </div>
         <div class="h-item">
-          <div>流通市值</div>
-          <div>总市值</div>
+          <div :class="{mark: sortBy=='ltsz'}" @click="handleSort('ltsz')">流通市值</div>
+          <div :class="{mark: sortBy=='tshare'}" @click="handleSort('tshare')">总市值</div>
         </div>
         <div class="h-item">
-          <div>封板时间</div>
-          <div>最后封板</div>
+          <div :class="{mark: sortBy=='fbt'}" @click="handleSort('fbt')">封板时间</div>
+          <div :class="{mark: sortBy=='lbt'}" @click="handleSort('lbt')">最后封板</div>
         </div>
         <div class="h-item">
           <div>涨停统计</div>
-          <div>连扳数</div>
+          <div :class="{mark: sortBy=='lbc'}" @click="handleSort('lbc')">连扳数</div>
         </div>
         <div class="h-item">
-          <div>所属行业</div>
-          <div>连扳概率</div>
+          <div :class="{mark: sortBy=='hybk'}" @click="handleSort('hybk')">所属行业</div>
+          <div :class="{mark: sortBy=='lbgl'}" @click="handleSort('lbgl')">连扳概率</div>
         </div>
       </div>
       <ul>
         <li class="m-item" v-for="(item, index) in dataList">
-          <div v-if="indexList.includes(index)" class="item-header">{{item.a}}</div>
+          <div v-if="!sort && indexList.includes(index)" class="item-header">{{item.a}}</div>
           <div class="item-top" @click="$set(item, 'showRemark', !item.showRemark)">
             <div class="h-item">
               <div>{{item.n}}</div>
@@ -104,6 +104,7 @@
     var upLimitsScript = null;
     var showDay = '';
     var today = '';
+    var ztToday = '';
     var yesterday = '';
     var todayZTData = null;
     var todayDTData = null;
@@ -140,8 +141,8 @@
   <script>
     // 上证指数，涨跌停数
     var klines = [];
-    var klines30 = []
-    var xAxis30 = []
+    var klines10 = []
+    var xAxis10 = []
     var index = 0;
     start();
     function prev() {
@@ -150,14 +151,14 @@
         return;
       }
       index++;
-      render();
+      init();
     }
     function next() {
       if (index <= 0) {
         return;
       }
       index--;
-      render();
+      init();
     }
     function start() {
       var aUrl = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?cb=aCallback&secid=1.000001&ut=fa5fd1943c7b386f172d6893dbfba10b&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5%2Cf6&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&klt=101&fqt=1&end=20500101&lmt=120&_=1732868613637'
@@ -165,22 +166,25 @@
     }
     function aCallback(data) { // 上证指数K线
       klines = data.data.klines;
-      render()
+      init();
     }
-    function render() {
-      klines30 = klines.slice(-10 - index);
-      if (index) {
-        klines30 = klines.slice(-10 - index, klines.length - index);
-      }
-      showDay = klines30[klines30.length - index - 1].split(",")[0];
-      today = showDay.replace(/-/g, '');
-      yesterday = klines30[klines30.length - index - 2].split(",")[0].replace(/-/g, '');
-      initPageDom()
+    function init() {
+      const allXAxis = Object.keys(allData);
+      xAxis10 = allXAxis.slice(allXAxis.length - 10 - index, allXAxis.length - index);
+      showDay = today = xAxis10[xAxis10.length - 1];
+      yesterday = xAxis10[xAxis10.length - 2];
+      console.log("today：", today)
+      const lastIndex = klines.findIndex((str, index) => str.split(",")[0].replace(/-/g, '') == today) + 1;
+      klines10 = klines.slice(lastIndex - 10, lastIndex);
+      initTopDom();
+      initChart();
+      initContent();
+    }
+    function initChart() {
       if (allData[today]) {
         initChart1()
         initChart2()
         initChart3()
-        initContent()
       } else {
         queryTodayData()
       }
@@ -326,9 +330,8 @@
       initChart1()
       initChart2()
       initChart3()
-      initContent()
     }
-    function initPageDom() {
+    function initTopDom() {
 
       document.getElementById("day").innerHTML = showDay;
       const hangyeUrl = "https://3.push2.eastmoney.com/api/qt/clist/get?cb=pageDomCallback&pn=1&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&dect=1&wbp2u=|0|0|0|web&fid=f3&fs=m:90+t:2+f:!50&fields=f3,f14&_=1733382164442"
@@ -379,19 +382,17 @@
     }
 
     function initChart1() {
-      xAxis30 = []
-      var yAxis30 = []
+      var yAxis10 = []
       var upLimits = []
       var dropLimits = []
       var mainBoardNumArr = []
       var chuangyeBoardNumArr = []
       var kechuangBoardNumArr = []
       var beijingBoardNumArr = []
-      klines30.forEach(str => {
+      klines10.forEach(str => {
         const arr = str.split(",");
         const day = arr[0].replace(/-/g, '');
-        xAxis30.push(day)
-        yAxis30.push(arr[2])
+        yAxis10.push(arr[2])
         upLimits.push(allData[day] && allData[day].upLimitsNum)
         dropLimits.push(allData[day] && allData[day].dropLimitsNum)
         mainBoardNumArr.push(allData[day] && allData[day].mainBoardNum)
@@ -427,7 +428,7 @@
               interval: 0,
               rotate: 40
             },
-            data: xAxis30,
+            data: xAxis10,
             axisPointer: {
               type: "shadow",
             },
@@ -538,7 +539,7 @@
                 return value + "";
               },
             },
-            data: yAxis30,
+            data: yAxis10,
           },
         ],
       };
@@ -558,9 +559,9 @@
       var firstToSecondRateArr = []; // 一进二成功率
       var secondToThirdRateArr = []; // 二进三成功率
       var upFourRateArr = []; // 高度板连板率
-      xAxis30.forEach((day, index) => {
+      xAxis10.forEach((day, index) => {
         const dayData = allData[day];
-        const yesterdayData = allData[xAxis30[index - 1]];
+        const yesterdayData = allData[xAxis10[index - 1]];
         let firstRate = undefined;
         let firstToSecondRate = undefined;
         let secondToThirdRate = undefined;
@@ -610,7 +611,7 @@
               interval: 0,
               rotate: 40
             },
-            data: xAxis30,
+            data: xAxis10,
             axisPointer: {
               type: "shadow",
             },
@@ -756,7 +757,7 @@
       var yesterdayUpTodayRiseArr = []; // 昨日涨停今表现
       var yesterdayLineTodayRiseArr = []; // 昨日连扳今表现
       var yesterdayBoomTodayRiseArr = []; // 昨日炸板今表现
-      xAxis30.forEach((day, index) => {
+      xAxis10.forEach((day, index) => {
         const dayData = allData[day];
         if (dayData) {
           const { boomRate, yesterdayUpTodayRise, yesterdayLineTodayRise, yesterdayBoomTodayRise, mainBoardNum, chuangyeBoardNum, kechuangBoardNum, beijingBoardNum } = dayData;
@@ -810,7 +811,7 @@
               interval: 0,
               rotate: 40
             },
-            data: xAxis30,
+            data: xAxis10,
             axisPointer: {
               type: "shadow",
             },

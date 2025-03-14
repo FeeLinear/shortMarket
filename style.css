@@ -61,20 +61,29 @@ body {
   flex: 1;
   text-align: center;
 }
-.item-bot{
+
+.item-bot {
   padding: 5px 10px;
   background-color: aliceblue;
 }
-.no-reason .item-bot{
+
+.no-reason .item-bot {
   display: none;
 }
-.show-remark{
-  display: block!important;
+
+.show-remark {
+  display: block !important;
 }
-.no-remark{
-  display: none!important;
+
+.no-remark {
+  display: none !important;
 }
-.item-header{
+
+.item-header {
   padding: 10px;
   background-color: aquamarine;
+}
+
+.mark {
+  color: chocolate;
 }
