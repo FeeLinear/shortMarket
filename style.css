@@ -86,4 +86,13 @@ body {
 
 .mark {
   color: chocolate;
+  position: relative;
+}
+
+.asc .mark::after {
+  content: '↑';
+}
+
+.desc .mark::after {
+  content: '↓';
 }

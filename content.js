@@ -24,7 +24,7 @@ function renderContent(data) {
   const aMap = {};
   tempList.forEach((item) => {
     if (!item.a) {
-      item.a = "其他";
+      item.a = "其它";
     }
     if (aMap[item.a]) {
       aMap[item.a]++;
@@ -32,22 +32,34 @@ function renderContent(data) {
       aMap[item.a] = 1;
     }
   });
+  let aMapList = [];
   Object.keys(aMap).forEach((key) => {
-    const keyList = tempList.filter((item) => item.a == key);
-    dataList = dataList.concat(keyList);
+    aMapList.push({
+      a: key,
+      value: aMap[key],
+    });
   });
-  const numList = [0].concat(Object.values(aMap));
-  const indexList = [];
-  numList.forEach((num, index) => {
-    indexList[index] = [...numList]
-      .splice(0, index + 1)
-      .reduce((a, b) => a + b);
+  aMapList.sort((a, b) => {
+    return b.value - a.value;
+  });
+  // 其它放置最后
+  const qiTaIndex = aMapList.findIndex((item) => item.a == "其它");
+  const qitaObj = aMapList.splice(qiTaIndex, 1);
+  aMapList = aMapList.concat(qitaObj);
+  const indexList = [0];
+  aMapList.forEach((aObj, index) => {
+    const keyList = tempList
+      .filter((item) => item.a == aObj.a)
+      .sort((a, b) => {
+        return a.fbt - b.fbt;
+      });
+    dataList = dataList.concat(keyList);
+    indexList[index + 1] = indexList[index] + aObj.value;
   });
   if (window.vm) {
-    window.vm.$data.sort = "asc"; // desc
+    window.vm.$data.sort = ""; // desc
     window.vm.$data.sortBy = "";
     window.vm.$data.noReason = true;
-    window.vm.$data.aMap = aMap;
     window.vm.$data.indexList = indexList;
     window.vm.$data.dataList = dataList;
     return;
@@ -56,10 +68,10 @@ function renderContent(data) {
     el: "#wrapper",
     data() {
       return {
+        banKuaiSort: "fbt",
         sort: "",
         sortBy: "",
         noReason: true,
-        aMap,
         indexList,
         dataList,
       };
@@ -103,21 +115,54 @@ function renderContent(data) {
         if (val) {
           this.dataList = this.dataList.sort((a, b) => {
             if (this.sort == "asc") {
+              if (val == "zttj") {
+                return a[val].ct - b[val].ct;
+              }
               return a[val] - b[val];
             } else if (this.sort == "desc") {
+              if (val == "zttj") {
+                return b[val].ct - a[val].ct;
+              }
               return b[val] - a[val];
             }
           });
         } else {
           let rList = [];
-          Object.keys(aMap).forEach((key) => {
-            const keyList = tempList.filter((item) => item.a == key);
+          const banKuaiSort = this.banKuaiSort;
+          aMapList.forEach((aObj) => {
+            const keyList = tempList
+              .filter((item) => item.a == aObj.a)
+              .sort((a, b) => {
+                if (banKuaiSort == "zttj") {
+                  return b[banKuaiSort].ct - a[banKuaiSort].ct;
+                }
+                if (banKuaiSort == "fbt") {
+                  return a[banKuaiSort] - b[banKuaiSort];
+                }
+                return b[banKuaiSort] - a[banKuaiSort];
+              });
             rList = rList.concat(keyList);
           });
           this.dataList = rList;
         }
       },
       clearSort() {
+        if (this.sort) {
+          this.banKuaiSort = "fbt";
+        } else {
+          switch (this.banKuaiSort) {
+            case "fbt":
+              this.banKuaiSort = "zttj";
+              break;
+            case "zttj":
+              this.banKuaiSort = "lbc";
+              break;
+            case "lbc":
+              this.banKuaiSort = "fbt";
+              break;
+          }
+          return this.sortChange();
+        }
         this.sortBy = "";
         this.sort = "";
       },
