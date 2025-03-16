@@ -20,10 +20,18 @@
   <div id="chart2"></div>
   <div id="chart3"></div>
   <div id="wrapper">
-    <div :class="{'no-reason': noReason}">
+    <div v-if="review" class="review">
+      <div class="review-header">
+        <span>当日总结</span>
+      </div>
+      <div>
+        <span>{{review}}</span>
+      </div>
+    </div>
+    <div :class="showBotClass">
       <div :class="['header', sort]">
         <div class="h-item">
-          <div @click="noReason = !noReason">股票名称</div>
+          <div @click="toggleShowBot">股票名称</div>
           <div :class="{mark: !sortBy}" @click="clearSort()">排序{{banKuaiSort == 'zttj'?'统计':banKuaiSort ==
             'fbt'?'时间':'连板'}}</div>
         </div>
@@ -46,8 +54,11 @@
       </div>
       <ul>
         <li class="m-item" v-for="(item, index) in dataList">
-          <div v-if="!sort && indexList.includes(index)" class="item-header">{{item.a}}</div>
-          <div class="item-top" @click="$set(item, 'showRemark', !item.showRemark)">
+          <div v-if="!sort && indexList.includes(index)" class="item-header">
+            {{item.a}}
+            <span>（{{aMap[item.a]}}家涨停）</span>
+          </div>
+          <div class="item-top">
             <div class="h-item">
               <div>{{item.n}}</div>
               <div>{{item.c}}</div>
@@ -66,12 +77,12 @@
             </div>
             <div class="h-item">
               <div>{{item.hybk}}</div>
-              <div>{{item.b}}</div>
+              <div :style="{color: getColor(item.b)}">{{item.b}}</div>
             </div>
           </div>
-          <div class="item-bot"
-            :class="{'show-remark': item.showRemark === true, 'no-remark': item.showRemark === false}">
-            {{item.remark}}
+          <div class="item-bot">
+            <div v-show="item.comments" class="comments">点评：{{item.comments}}</div>
+            <div v-show="item.remark" class="remark">{{item.remark}}</div>
           </div>
         </li>
       </ul>
@@ -803,7 +814,8 @@
             // "京市",
             "昨日涨停今表现",
             "昨日连扳今表现",
-            "昨日炸板今表现"],
+            //"昨日炸板今表现"
+          ],
         },
         xAxis: [
           {
@@ -930,17 +942,17 @@
             },
             data: yesterdayLineTodayRiseArr,
           },
-          {
-            name: "昨日炸板今表现",
-            type: "line",
-            yAxisIndex: 1,
-            tooltip: {
-              valueFormatter: function (value) {
-                return value + " %";
-              },
-            },
-            data: yesterdayBoomTodayRiseArr,
-          },
+          // {
+          //   name: "昨日炸板今表现",
+          //   type: "line",
+          //   yAxisIndex: 1,
+          //   tooltip: {
+          //     valueFormatter: function (value) {
+          //       return value + " %";
+          //     },
+          //   },
+          //   data: yesterdayBoomTodayRiseArr,
+          // },
         ],
       };
 

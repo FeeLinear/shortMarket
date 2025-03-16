@@ -33,6 +33,7 @@ body {
 
 #wrapper {
   min-height: 30vh;
+  padding-top: 10px;
   background-color: azure;
 }
 
@@ -48,7 +49,7 @@ body {
 }
 
 .m-item {
-  margin: 10px 0;
+  padding: 5px 0;
 }
 
 .item-top {
@@ -63,30 +64,54 @@ body {
 }
 
 .item-bot {
-  padding: 5px 10px;
   background-color: aliceblue;
+  color: #999;
+  text-align: justify;
 }
 
-.no-reason .item-bot {
+.comments {
+  margin: 0 10px;
+  padding-bottom: 10px;
+  color: chocolate;
   display: none;
 }
 
-.show-remark {
-  display: block !important;
+.remark {
+  margin: 0 10px;
+  padding-bottom: 20px;
+  display: none;
 }
 
-.no-remark {
-  display: none !important;
+.all .comments,
+.all .remark {
+  display: block;
+}
+
+.show-comments .comments {
+  display: block;
+}
+
+.show-remark .remark {
+  display: block;
 }
 
 .item-header {
   padding: 10px;
   background-color: aquamarine;
+  font-size: 16px;
+}
+
+.item-header span {
+  font-size: 12px;
 }
 
 .mark {
   color: chocolate;
   position: relative;
+}
+
+.chocolate {
+  color: chocolate;
 }
 
 .asc .mark::after {
@@ -95,4 +120,23 @@ body {
 
 .desc .mark::after {
   content: '↓';
+}
+
+.review {
+  margin: 10px;
+  padding: 10px;
+  line-height: 1.5;
+  border: 1px dashed #999;
+  border-radius: 5px;
+  text-indent: 26px;
+  font-size: 13px;
+  text-align: justify;
+}
+
+.review .review-header {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+  text-indent: 0;
 }

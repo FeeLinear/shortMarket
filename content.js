@@ -19,12 +19,20 @@ function ztCallback(data) {
   renderContent(data);
 }
 function renderContent(data) {
+  const review = data.data.review;
   const tempList = data.data.pool;
   let dataList = [];
   const aMap = {};
   tempList.forEach((item) => {
     if (!item.a) {
-      item.a = "其它";
+      if (["4", "8", "9"].includes(item.c.charAt(0))) {
+        item.a = "北交所";
+      } else {
+        item.a = "其它";
+      }
+    }
+    if (!item.b) {
+      item.b = "";
     }
     if (aMap[item.a]) {
       aMap[item.a]++;
@@ -59,7 +67,9 @@ function renderContent(data) {
   if (window.vm) {
     window.vm.$data.sort = ""; // desc
     window.vm.$data.sortBy = "";
-    window.vm.$data.noReason = true;
+    window.vm.$data.showBotClass = "";
+    window.vm.$data.review = review;
+    window.vm.$data.aMap = aMap;
     window.vm.$data.indexList = indexList;
     window.vm.$data.dataList = dataList;
     return;
@@ -71,7 +81,9 @@ function renderContent(data) {
         banKuaiSort: "fbt",
         sort: "",
         sortBy: "",
-        noReason: true,
+        showBotClass: "",
+        review,
+        aMap,
         indexList,
         dataList,
       };
@@ -114,16 +126,28 @@ function renderContent(data) {
         const val = this.sortBy;
         if (val) {
           this.dataList = this.dataList.sort((a, b) => {
-            if (this.sort == "asc") {
-              if (val == "zttj") {
+            if (val == "zttj") {
+              if (this.sort == "asc") {
                 return a[val].ct - b[val].ct;
-              }
-              return a[val] - b[val];
-            } else if (this.sort == "desc") {
-              if (val == "zttj") {
+              } else if (this.sort == "desc") {
                 return b[val].ct - a[val].ct;
               }
-              return b[val] - a[val];
+            } else if (val == "hybk") {
+              if (this.sort == "asc") {
+                return a[val].localeCompare(b[val], "zh-Hans-CN", {
+                  sensitivity: "accent",
+                });
+              } else if (this.sort == "desc") {
+                return b[val].localeCompare(a[val], "zh-Hans-CN", {
+                  sensitivity: "accent",
+                });
+              }
+            } else {
+              if (this.sort == "asc") {
+                return a[val] - b[val];
+              } else if (this.sort == "desc") {
+                return b[val] - a[val];
+              }
             }
           });
         } else {
@@ -146,6 +170,17 @@ function renderContent(data) {
           this.dataList = rList;
         }
       },
+      toggleShowBot() {
+        if (!this.showBotClass) {
+          this.showBotClass = "all";
+        } else if (this.showBotClass == "all") {
+          this.showBotClass = "show-comments";
+        } else if (this.showBotClass == "show-comments") {
+          this.showBotClass = "show-remark";
+        } else if (this.showBotClass == "show-remark") {
+          this.showBotClass = "";
+        }
+      },
       clearSort() {
         if (this.sort) {
           this.banKuaiSort = "fbt";
@@ -165,6 +200,27 @@ function renderContent(data) {
         }
         this.sortBy = "";
         this.sort = "";
+      },
+      getColor(bili = 0) {
+        var one = (255 + 255) / 100;
+        var r = 0;
+        var g = 0;
+        var b = 0;
+
+        if (bili < 50) {
+          // 比例小于50的时候红色是越来越多的,直到红色为255时(红+绿)变为黄色.
+          r = one * bili;
+          g = 255;
+        }
+        if (bili >= 50) {
+          // 比例大于50的时候绿色是越来越少的,直到0 变为纯红
+          g = 255 - (bili - 50) * one;
+          r = 255;
+        }
+        r = parseInt(r); // 取整
+        g = parseInt(g); // 取整
+        b = parseInt(b); // 取整
+        return "rgb(" + r + "," + g + "," + b + ")";
       },
     },
     mounted() {},
