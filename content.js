@@ -153,7 +153,8 @@ function renderContent(data) {
         } else {
           let rList = [];
           const banKuaiSort = this.banKuaiSort;
-          aMapList.forEach((aObj) => {
+          const indexList = [0];
+          aMapList.forEach((aObj, index) => {
             const keyList = tempList
               .filter((item) => item.a == aObj.a)
               .sort((a, b) => {
@@ -166,7 +167,9 @@ function renderContent(data) {
                 return b[banKuaiSort] - a[banKuaiSort];
               });
             rList = rList.concat(keyList);
+            indexList[index + 1] = indexList[index] + aObj.value;
           });
+          this.indexList = [...indexList];
           this.dataList = rList;
         }
       },
