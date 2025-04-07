@@ -158,7 +158,6 @@
     var index = 0;
     start();
     function prev() {
-      console.log(index);
       if (index >= 8) {
         return;
       }
@@ -182,7 +181,7 @@
     }
     function init() {
       const allXAxis = Object.keys(allData);
-      xAxis10 = allXAxis.slice(allXAxis.length - 10 - index, allXAxis.length - index);
+      xAxis10 = [...allXAxis].splice(-10 - index, 10);
       showDay = today = xAxis10[xAxis10.length - 1];
       yesterday = xAxis10[xAxis10.length - 2];
       console.log("today：", today)
